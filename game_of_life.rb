@@ -1,29 +1,17 @@
 require 'gosu'
 
-class GameOfLife < Gosu::Window
-
-  WIDTH = 1920
-  HEIGHT = 1080
-  CELL_SIZE = 5
-  #SPEED = 150
-  BG_COLOR = Gosu::Color.new(0xff222222)
-  CELL_COLOR = Gosu::Color.new(0xff00ff00)
+class GameOfLife
+  attr_reader :grid
   
-  def initialize
-    super(WIDTH, HEIGHT, true)
-    self.caption = "Game of Life"
-    @grid_width = WIDTH / CELL_SIZE
-    @grid_height = HEIGHT / CELL_SIZE
+  def initialize(width, height, cell_size)
+    @grid_width = width / cell_size
+    @grid_height = height / cell_size
     @grid = Array.new(@grid_height) { Array.new(@grid_width, 0) }
 
     randomize_grid
   end
 
-  private
-
   def update
-    #print_grid
-    
     update_grid = Array.new(@grid_height) { Array.new(@grid_width, 0) }
     update_grid.each_index do |row|
       update_grid[row].each_index do |col|
@@ -44,19 +32,9 @@ class GameOfLife < Gosu::Window
       end
     end
     @grid = update_grid
-
   end
 
-  def print_grid
-    puts
-    @grid.each do |row|
-      row.each do |cell|
-        print "#{cell}, "
-      end
-      puts
-    end
-    puts
-  end
+  private
 
   def get_num_neighbours(x, y)
     neighbours = 0
@@ -71,17 +49,53 @@ class GameOfLife < Gosu::Window
     neighbours
   end
 
-  def draw
-    @grid.each_index do |row|
-      @grid[row].each_with_index do |value, col|
-        draw_cell col, row, CELL_COLOR if value == 1
-      end
-    end
-  end
-
   def randomize_grid
     (@grid_height * @grid_width / 5).times do
       @grid[rand(@grid_height)][rand(@grid_width)] = 1
+    end
+  end
+end
+
+class GameWindow < Gosu::Window
+  WINDOW_WIDTH = 800 #1680
+  WINDOW_HEIGHT = 600 #1050
+  FULL_SCREEN = false
+
+  #SPEED = 150
+  CELL_SIZE = 5
+  BG_COLOR = Gosu::Color.new(0xff222222)
+  CELL_COLOR = Gosu::Color.new(0xff00ff00)
+  
+  def initialize
+    super(WINDOW_WIDTH, WINDOW_HEIGHT, FULL_SCREEN)
+    self.caption = "Game of Life"
+    @game_of_life = GameOfLife.new WINDOW_WIDTH, WINDOW_HEIGHT, CELL_SIZE
+  end
+
+  private
+
+  def update
+    #print_grid
+    @game_of_life.update
+  end
+
+  def print_grid
+    puts
+    @game_of_life.grid.each do |row|
+      row.each do |cell|
+        print "#{cell}, "
+      end
+      puts
+    end
+    puts
+  end
+
+  def draw
+    grid = @game_of_life.grid
+    grid.each_index do |row|
+      grid[row].each_with_index do |value, col|
+        draw_cell col, row, CELL_COLOR if value == 1
+      end
     end
   end
 
@@ -95,5 +109,4 @@ class GameOfLife < Gosu::Window
   end
 end
 
-
-GameOfLife.new.show
+GameWindow.new.show
